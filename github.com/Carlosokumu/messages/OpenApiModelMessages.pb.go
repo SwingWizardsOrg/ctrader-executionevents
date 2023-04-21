@@ -20,11 +20,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type ProtoOAPayloadType_PROTO_OA_APPLICATION_AUTH_RES  ProtoOAPayloadType int32
+type ProtoOAPayloadType int32
 
 const (
 	ProtoOAPayloadType_PROTO_OA_APPLICATION_AUTH_REQ             ProtoOAPayloadType = 2100
-	            ProtoOAPayloadType = 2101
+	ProtoOAPayloadType_PROTO_OA_APPLICATION_AUTH_RES             ProtoOAPayloadType = 2101
 	ProtoOAPayloadType_PROTO_OA_ACCOUNT_AUTH_REQ                 ProtoOAPayloadType = 2102
 	ProtoOAPayloadType_PROTO_OA_ACCOUNT_AUTH_RES                 ProtoOAPayloadType = 2103
 	ProtoOAPayloadType_PROTO_OA_VERSION_REQ                      ProtoOAPayloadType = 2104
