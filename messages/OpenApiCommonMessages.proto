@@ -5,7 +5,7 @@ syntax = "proto2";
 package messages;
 
 option go_package = "github.com/Carlosokumu/messages";
-import "messages/OpenApiModelMessages.proto";
+import "OpenApiModelMessages.proto";
 
 message ProtoMessage {
     required uint32 payloadType = 1; // Contains id of ProtoPayloadType or other custom PayloadTypes (e.g. ProtoOAPayloadType)
