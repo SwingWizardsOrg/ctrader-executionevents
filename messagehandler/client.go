@@ -80,7 +80,7 @@ var upgrader = websocket.Upgrader{
 // 				log.Printf("error: %v", err)
 // 			}
 // 			break
-// 		}
+// 		}s
 // 		fmt.Println(resourceId.ResourceName)
 // 		c.hub.resourceid <- resourceId
 // 	}
