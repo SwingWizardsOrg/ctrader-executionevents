@@ -91,11 +91,21 @@ func AuthorizeAccount(conn *websocket.Conn, h *middlewares.Hub) {
 	}
 	go func() {
 		accounthAuthRes := <-h.AccountAuthResChannnel
-		accounthAuth := AccountAuth{}
-		traderinfo := &TraderInfo{}
-		accounthAuth.SetNext(traderinfo)
-		traderinfo.Execute(conn, h)
-		fmt.Println("accountres:", accounthAuthRes)
+		authRes := messages.ProtoOAAccountAuthRes{}
+
+		err := proto.Unmarshal(accounthAuthRes.Payload, &authRes)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if *accounthAuthRes.PayloadType == uint32(messages.ProtoOAPayloadType_PROTO_OA_ACCOUNT_AUTH_RES) {
+			accounthAuth := AccountAuth{}
+			assetlistinitializer := &AssetListInitializer{}
+			// traderinfo := &TraderInfo{}
+			accounthAuth.SetNext(assetlistinitializer)
+			assetlistinitializer.Execute(conn, h)
+			// traderinfo.Execute(conn, h)
+		}
+
 	}()
 
 }
@@ -164,6 +174,34 @@ func GetAssets(conn *websocket.Conn, h *middlewares.Hub) {
 		proto.Unmarshal(assetListRes.Payload, &assetRes)
 		fmt.Println("assets:", assetRes)
 	}()
+}
+
+func GetAccountAssets(conn *websocket.Conn, h *middlewares.Hub) {
+	var payloadtype = uint32(messages.ProtoOAPayloadType_PROTO_OA_ASSET_LIST_REQ)
+	fmt.Println(payloadtype)
+	id := helpers.AccountId
+	nmess := "ASSETS_REQ"
+	assetReq := &messages.ProtoOAAssetListReq{
+		CtidTraderAccountId: &id,
+	}
+	assetBytes, peer := proto.Marshal(assetReq)
+	if peer != nil {
+		fmt.Println(peer)
+	}
+
+	message := &messages.ProtoMessage{
+		PayloadType: &payloadtype,
+		Payload:     assetBytes,
+		ClientMsgId: &nmess,
+	}
+
+	protoMessage, _ := proto.Marshal(message)
+	err := conn.WriteMessage(MessageType, protoMessage)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }
 
 func GetAccountOrders(conn *websocket.Conn, h *middlewares.Hub) {

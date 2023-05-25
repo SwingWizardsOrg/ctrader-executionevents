@@ -11,10 +11,10 @@ type Hub struct {
 	clients map[*Client]bool
 
 	//  Register requests from the clients.
-	register chan *Client
+	Register chan *Client
 
 	// Unregister requests from clients.
-	unregister chan *Client
+	Unregister chan *Client
 
 	//holds messages from the ctrader
 	Protos chan messages.ProtoMessage
@@ -44,8 +44,8 @@ type Hub struct {
 
 func NewHub() *Hub {
 	return &Hub{
-		register:                       make(chan *Client),
-		unregister:                     make(chan *Client),
+		Register:                       make(chan *Client),
+		Unregister:                     make(chan *Client),
 		clients:                        make(map[*Client]bool),
 		Protos:                         make(chan messages.ProtoMessage),
 		resourceid:                     make(chan models.ResourceId),
@@ -69,13 +69,13 @@ func NewHub() *Hub {
 func (h *Hub) Run() {
 	for {
 		select {
-		case client := <-h.register:
+		case client := <-h.Register:
 			h.clients[client] = true
-		//case client := <-h.unregister:
-		// if _, ok := h.clients[client]; ok {
-		// 	delete(h.clients, client)
-		// 	close(client.protomessages)
-		// }
+		case client := <-h.Unregister:
+			if _, ok := h.clients[client]; ok {
+				delete(h.clients, client)
+
+			}
 		case protoMessage := <-h.Protos:
 			fmt.Println("From Ctrdaer")
 			ChannelMessage(protoMessage, h)

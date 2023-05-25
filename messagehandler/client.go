@@ -126,11 +126,18 @@ var upgrader = websocket.Upgrader{
 // application ensures that there is at most one writer to a connection by
 // // executing all writes from this goroutine.
 func writePump(c *middlewares.Client) {
+	defer func() {
+		c.Hub.Unregister <- c
+		c.Appconn.Close()
+	}()
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
 		c.Appconn.Close()
+		c.Conn.Close()
 	}()
+
+	c.Hub.Register <- c
 	for {
 		select {
 

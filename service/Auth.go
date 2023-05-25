@@ -42,6 +42,14 @@ type Symbol struct {
 	next MessageHandler
 }
 
+type AssetListInitializer struct {
+	next MessageHandler
+}
+
+type LightSymbolInitializer struct {
+	next MessageHandler
+}
+
 type SpotSubscriber struct {
 	next MessageHandler
 }
@@ -123,4 +131,22 @@ func (subscriber *SpotSubscriber) Execute(conn *websocket.Conn, h *middlewares.H
 
 func (subscriber *SpotSubscriber) SetNext(next MessageHandler) {
 	subscriber.next = next
+}
+
+func (assetListInitializer *AssetListInitializer) Execute(conn *websocket.Conn, h *middlewares.Hub) {
+	fmt.Println("Initializing account assets")
+	GetAccountAssets(conn, h)
+
+}
+
+func (assetListInitializer *AssetListInitializer) SetNext(next MessageHandler) {
+	assetListInitializer.next = next
+}
+
+func (lightSymbolInitializer *LightSymbolInitializer) Execute(conn *websocket.Conn, h *middlewares.Hub) {
+	fmt.Println("Initializing light symbols")
+}
+
+func (lightSymbolInitializer *LightSymbolInitializer) SetNext(next MessageHandler) {
+	lightSymbolInitializer.next = next
 }
