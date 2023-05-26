@@ -50,6 +50,7 @@ func NewHub() *Hub {
 		Protos:                         make(chan messages.ProtoMessage),
 		resourceid:                     make(chan models.ResourceId),
 		protosback:                     make(chan messages.ProtoMessage),
+		AssetListChannnel:              make(chan messages.ProtoMessage),
 		AccountAuthResChannnel:         make(chan messages.ProtoMessage),
 		AppAuthResChannnel:             make(chan messages.ProtoMessage),
 		TraderResChannnel:              make(chan messages.ProtoMessage),

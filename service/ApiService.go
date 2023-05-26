@@ -103,7 +103,6 @@ func AuthorizeAccount(conn *websocket.Conn, h *middlewares.Hub) {
 			// traderinfo := &TraderInfo{}
 			accounthAuth.SetNext(assetlistinitializer)
 			assetlistinitializer.Execute(conn, h)
-			// traderinfo.Execute(conn, h)
 		}
 
 	}()
@@ -135,44 +134,12 @@ func GetTrader(conn *websocket.Conn, h *middlewares.Hub) {
 		traderInfoRes := <-h.TraderResChannnel
 		traderRes := messages.ProtoOATraderRes{}
 		proto.Unmarshal(traderInfoRes.Payload, &traderRes)
-		fmt.Println("trader:", traderRes)
 		trader := TraderInfo{}
 		marketorder := &MarketOrder{}
 		trader.SetNext(marketorder)
 		marketorder.Execute(conn, h)
 		h.TraderResChannnel <- traderInfoRes
 
-	}()
-}
-
-func GetAssets(conn *websocket.Conn, h *middlewares.Hub) {
-	var payloadtype = uint32(messages.ProtoOAPayloadType_PROTO_OA_ASSET_LIST_REQ)
-	id := helpers.AccountId
-	messageId := "ASSET_REQ"
-	assetReq := &messages.ProtoOAAssetListReq{
-		CtidTraderAccountId: &id,
-	}
-
-	acBytes, peer := proto.Marshal(assetReq)
-	if peer != nil {
-		fmt.Println(peer)
-	}
-
-	message := &messages.ProtoMessage{
-		PayloadType: &payloadtype,
-		Payload:     acBytes,
-		ClientMsgId: &messageId,
-	}
-	protomessage, _ := proto.Marshal(message)
-	err := conn.WriteMessage(MessageType, protomessage)
-	if err != nil {
-		log.Fatal(err)
-	}
-	go func() {
-		assetListRes := <-h.AssetListChannnel
-		assetRes := messages.ProtoOAAssetListReq{}
-		proto.Unmarshal(assetListRes.Payload, &assetRes)
-		fmt.Println("assets:", assetRes)
 	}()
 }
 
@@ -201,6 +168,32 @@ func GetAccountAssets(conn *websocket.Conn, h *middlewares.Hub) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	go func() {
+		assetListRes := <-h.AssetListChannnel
+		accountAssets := messages.ProtoOAAssetListRes{}
+		err := proto.Unmarshal(assetListRes.Payload, &accountAssets)
+		if err != nil {
+			log.Fatal(err)
+		}
+		swingwizardassets := persistence.GetAllSwingAssets()
+		if len(swingwizardassets) == 0 {
+			for _, asset := range accountAssets.Asset {
+				swingAsset := mappers.SwingAsset{
+					AssetId:     *asset.AssetId,
+					Name:        *asset.Name,
+					DisplayName: *asset.DisplayName,
+				}
+				persistence.InsertSwingAsset(swingAsset)
+
+			}
+		}
+		assetListInitializer := AssetListInitializer{}
+		lightSymbolInitializer := &LightSymbolInitializer{}
+		assetListInitializer.SetNext(lightSymbolInitializer)
+		lightSymbolInitializer.Execute(conn, h)
+
+	}()
 
 }
 
@@ -231,7 +224,6 @@ func GetAccountOrders(conn *websocket.Conn, h *middlewares.Hub) {
 		marketorders := <-h.MarketOrderListChannnel
 		reconcileRes := messages.ProtoOAReconcileRes{}
 		proto.Unmarshal(marketorders.Payload, &reconcileRes)
-		fmt.Println("positions:", reconcileRes)
 		marketorder := MarketOrder{}
 		symbol := &Symbol{}
 		marketorder.SetNext(symbol)
@@ -260,12 +252,35 @@ func GetLightSymbolList(conn *websocket.Conn, h *middlewares.Hub) {
 		ClientMsgId: &messageId,
 	}
 	protoMessage, _ := proto.Marshal(message)
-	err := conn.WriteMessage(2, protoMessage)
+	err := conn.WriteMessage(MessageType, protoMessage)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	go func() {
+		lightsymbols := <-h.LightSymbolChannel
+		ctraderSymbols := messages.ProtoOASymbolsListRes{}
+		SwingLightSymbol := persistence.GetAllSwingLightSymmbol()
+		err := proto.Unmarshal(lightsymbols.Payload, &ctraderSymbols)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if len(SwingLightSymbol) == 0 {
+			for _, symbol := range ctraderSymbols.Symbol {
+				lightSymbol := mappers.SwingLightSymbol{
+					SymbolId:     *symbol.SymbolId,
+					SymbolName:   *symbol.SymbolName,
+					BaseAssetId:  *symbol.BaseAssetId,
+					QuoteAssetId: *symbol.QuoteAssetId,
+				}
+				persistence.InsertSwingLightSymbol(lightSymbol)
+
+			}
+		}
+		lightSymbolInitializer := LightSymbolInitializer{}
+
+		traderinfo := &TraderInfo{}
+		lightSymbolInitializer.SetNext(traderinfo)
+		traderinfo.Execute(conn, h)
 
 	}()
 }
@@ -307,7 +322,6 @@ func GetSymbols(conn *websocket.Conn, h *middlewares.Hub) {
 
 		symbolRes := messages.ProtoOASymbolByIdRes{}
 		proto.Unmarshal(symbols.Payload, &symbolRes)
-		fmt.Println("symbols:", symbolRes)
 
 		symbolmodels := ProcessLightSymbols(lightsymbols, symbolRes.Symbol, swingassets)
 
@@ -315,23 +329,30 @@ func GetSymbols(conn *websocket.Conn, h *middlewares.Hub) {
 		for _, symbolmodel := range symbolmodels {
 
 			//Not Equal to account Deposit Asset
-			if symbolmodel.QuoteAsset.AssetId != 4 {
-				GetConversionSymbols(symbolmodel.QuoteAsset.AssetId, 4, conn)
+			if symbolmodel.QuoteAsset.AssetId != 11 {
+				fmt.Println("Not equal so re-tech...")
+				GetConversionSymbols(symbolmodel.QuoteAsset.AssetId, 11, conn)
+				lightsymbol := <-h.ConversionLightSymbols
+				lightSymbolResponse := messages.ProtoOASymbolsForConversionRes{}
+				err := proto.Unmarshal(lightsymbol.Payload, &lightSymbolResponse)
+				if err != nil {
+					log.Fatal(err)
+				}
+				accountConversionSymbols := HandleLightSymbols(lightSymbolResponse.Symbol, symbolmodels)
+
+				go func() {
+					h.AccounConversionSymbolsChannel <- accountConversionSymbols
+				}()
+				break
+
 			} else {
-				fmt.Println("Not Equal to Seposit asset...", symbolmodel.QuoteAsset.AssetId)
-			}
+				var symbols []models.SymbolModel
+				go func() {
+					symbols = append(symbols, symbolmodel)
+					h.AccounConversionSymbolsChannel <- symbols
+				}()
 
-			lightsymbol := <-h.ConversionLightSymbols
-			lightSymbolResponse := messages.ProtoOASymbolsForConversionRes{}
-			err := proto.Unmarshal(lightsymbol.Payload, &lightSymbolResponse)
-			if err != nil {
-				log.Fatal(err)
 			}
-			accountConversionSymbols := HandleLightSymbols(lightSymbolResponse.Symbol, symbolmodels)
-
-			go func() {
-				h.AccounConversionSymbolsChannel <- accountConversionSymbols
-			}()
 
 		}
 		symbol := Symbol{}
@@ -344,7 +365,7 @@ func GetSymbols(conn *websocket.Conn, h *middlewares.Hub) {
 func SendSubscribeSpotsRequest(conn *websocket.Conn) {
 	var payloadtype = uint32(messages.ProtoOAPayloadType_PROTO_OA_SUBSCRIBE_SPOTS_REQ)
 	id := helpers.AccountId
-	ids := []int64{1, 2}
+	ids := []int64{41}
 	nmess := "SUB_REQ"
 
 	symbolsRequest := &messages.ProtoOASubscribeSpotsReq{

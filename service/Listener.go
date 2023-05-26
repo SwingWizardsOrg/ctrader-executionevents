@@ -18,25 +18,16 @@ import (
 )
 
 const (
-	// Time allowed to write a message to the peer.
-	writeWait = 60 * time.Second
-
 	// Time allowed to read the next pong message from the peer.
 	pongWait = 60 * time.Second
-
-	// Send pings to peer with this period. Must be less than pongWait.
-	pingPeriod = (pongWait * 9) / 10
-
-	// Maximum message size allowed from peer.
-	maxMessageSize = 1024
 )
 
 func ReadCtraderMessages(conn *websocket.Conn, handler middlewares.Client) {
-	fmt.Println("Reading from ctrader....")
+	fmt.Println("Reading Messages from Ctrader....🧔🏽‍♂️")
 	defer func() {
 		conn.Close()
 	}()
-	conn.SetReadLimit(maxMessageSize)
+
 	conn.SetReadDeadline(time.Now().Add(pongWait))
 	conn.SetPongHandler(func(string) error { conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
@@ -113,14 +104,8 @@ func CollectAllMessages(h *middlewares.Hub, conn *websocket.Conn) {
 		mareketOrderModel.MoneyDigits = int32(*position.MoneyDigits)
 		mareketOrderModel.CommissionMonetary = float64(mareketOrderModel.Commision / int64(math.Pow(10, float64(mareketOrderModel.MoneyDigits))))
 		mareketOrderModel.DoubleCommissionMonetary = mareketOrderModel.CommissionMonetary * 2
-
-		fmt.Println("SWAP:", *position.Swap)
 		power := math.Pow(10, float64(mareketOrderModel.MoneyDigits))
-
 		SwapMoney := float64(*position.Swap) / float64(power)
-
-		fmt.Println("WAPMONETARY:", SwapMoney)
-
 		mareketOrderModel.SwapMonetary = SwapMoney
 		positions = append(positions, mareketOrderModel)
 	}
@@ -155,15 +140,14 @@ func CollectAllMessages(h *middlewares.Hub, conn *websocket.Conn) {
 
 		if spotEvent.Ask != nil {
 			ask = helpers.GetPriceRelative(symbol.Data, float64(*spotEvent.Ask))
+
 			fmt.Println("ask:", ask)
 		}
 		symbol.Bid = bid
 
 		if symbol.QuoteAsset.AssetId == accountModel.DepositAsset.AssetId {
-			fmt.Println("Equal...")
+			TickValue = helpers.GetTickValue(symbol.Data, symbol.QuoteAsset, *Trader.Trader.DepositAssetId, nil)
 		} else if (len(symbol.ConversionSymbols)) > 0 {
-
-			fmt.Println("RUNNINGID:", symbol.QuoteAsset.AssetId)
 			var updatedSymbols []models.SymbolModel
 			var tickValues []models.Tuple
 			for _, iSymbol := range symbol.ConversionSymbols {
@@ -187,41 +171,40 @@ func CollectAllMessages(h *middlewares.Hub, conn *websocket.Conn) {
 
 			}
 
-			var positionsPLStatus []float64
-			sum := 0.0
-
-			for _, position := range accountModel.Positions {
-				if position.Ordermodel.TradeSide == messages.ProtoOATradeSide_BUY {
-					Symbol := position.Ordermodel.Symbol.Data
-					pipValue := helpers.GetPipValue(*Symbol, TickValue)
-					positionReturn := symbol.Bid - position.Ordermodel.Price
-					pips := helpers.GetPipsFromPrice(Symbol, positionReturn)
-					grossProfit := pips * pipValue * helpers.FromMonetary(float64(position.Ordermodel.Volume))
-					roundedGross := math.Round(grossProfit*100) / 100
-					netProfit := roundedGross + position.DoubleCommissionMonetary + position.SwapMonetary
-					roundedNet := math.Round(netProfit*100) / 100
-					positionsPLStatus = append(positionsPLStatus, roundedNet)
-
-				} else {
-
-				}
-			}
-
-			// Iterate over the array and add each element to the sum
-			for _, netProfit := range positionsPLStatus {
-				sum += netProfit
-			}
-			accountModel.Balance = helpers.FromMonetary(float64(accountModel.SwingTrader.Balance))
-			equity := accountModel.Balance + sum
-			accountModel.Equity = equity
-
-			h.AccountModelChannel <- accountModel
-
-			fmt.Println("BALANCE:", helpers.FromMonetary(float64(accountModel.SwingTrader.Balance)))
-			fmt.Println("Sum:", sum)
-			fmt.Println("EQUITY:", equity)
-
 		}
+		var positionsPLStatus []float64
+		sum := 0.0
+
+		for _, position := range accountModel.Positions {
+			if position.Ordermodel.TradeSide == messages.ProtoOATradeSide_BUY {
+				Symbol := position.Ordermodel.Symbol.Data
+				pipValue := helpers.GetPipValue(*Symbol, TickValue)
+				positionReturn := symbol.Bid - position.Ordermodel.Price
+				pips := helpers.GetPipsFromPrice(Symbol, positionReturn)
+				grossProfit := pips * pipValue * helpers.FromMonetary(float64(position.Ordermodel.Volume))
+				roundedGross := math.Round(grossProfit*100) / 100
+				netProfit := roundedGross + position.DoubleCommissionMonetary + position.SwapMonetary
+				roundedNet := math.Round(netProfit*100) / 100
+				positionsPLStatus = append(positionsPLStatus, roundedNet)
+
+			} else {
+
+			}
+		}
+
+		// Iterate over the array and add each element to the sum
+		for _, netProfit := range positionsPLStatus {
+			sum += netProfit
+		}
+		accountModel.Balance = helpers.FromMonetary(float64(accountModel.SwingTrader.Balance))
+		equity := accountModel.Balance + sum
+		accountModel.Equity = equity
+
+		h.AccountModelChannel <- accountModel
+
+		fmt.Println("BALANCE:", helpers.FromMonetary(float64(accountModel.SwingTrader.Balance)))
+		fmt.Println("Sum:", sum)
+		fmt.Println("EQUITY:", equity)
 
 	}()
 

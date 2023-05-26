@@ -85,7 +85,7 @@ func (traderinfo *TraderInfo) SetNext(next MessageHandler) {
 
 func (assetlist *AssetList) Execute(conn *websocket.Conn, h *middlewares.Hub) {
 	fmt.Println("Fetching trader's asset list...")
-	GetAssets(conn, h)
+	//GetAssets(conn, h)
 
 }
 
@@ -145,6 +145,7 @@ func (assetListInitializer *AssetListInitializer) SetNext(next MessageHandler) {
 
 func (lightSymbolInitializer *LightSymbolInitializer) Execute(conn *websocket.Conn, h *middlewares.Hub) {
 	fmt.Println("Initializing light symbols")
+	GetLightSymbolList(conn, h)
 }
 
 func (lightSymbolInitializer *LightSymbolInitializer) SetNext(next MessageHandler) {

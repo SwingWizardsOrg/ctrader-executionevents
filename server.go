@@ -5,18 +5,15 @@ import (
 	"ctraderapi/middlewares"
 	"ctraderapi/persistence"
 	"fmt"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 
-	//dsn := "host=localhost user=postgres password=Agent047 dbname=postgres port=5432 sslmode=disable TimeZone=Asia/Shanghai"
-
-	dsn := "postgres://carlos:vUUYROlx74jmAdnvVunkNqiNdxAvZI32@dpg-cg9il4pmbg54mbfbrte0-a.oregon-postgres.render.com/swings"
+	dsn := os.Getenv("DATABASE_URL")
 	persistence.Connect(dsn)
-	persistence.Migrate()
-
 	router := initServer()
 	router.Run(":" + "8080")
 
