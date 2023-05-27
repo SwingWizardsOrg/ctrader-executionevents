@@ -3,7 +3,6 @@ package middlewares
 import (
 	"ctraderapi/messages/github.com/Carlosokumu/messages"
 	"ctraderapi/models"
-	"fmt"
 )
 
 type Hub struct {
@@ -78,20 +77,7 @@ func (h *Hub) Run() {
 
 			}
 		case protoMessage := <-h.Protos:
-			fmt.Println("From Ctrdaer")
 			ChannelMessage(protoMessage, h)
-			//h.protosback <- protoMessage
-			//case jsonMessage := <-h.resourceid:
-			// fmt.Println("ResourceId messages::", jsonMessage)
-			// for client := range h.clients {
-			// 	select {
-			// 	case client.resources <- jsonMessage:
-			// 	default:
-			// 		close(client.resources)
-			// 		delete(h.clients, client)
-			// 	}
-			// }
-
 		}
 	}
 }

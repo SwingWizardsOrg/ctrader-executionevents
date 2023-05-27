@@ -56,7 +56,7 @@ func ReadCtraderMessages(conn *websocket.Conn, handler middlewares.Client) {
 	}
 }
 
-func CollectAllMessages(h *middlewares.Hub, conn *websocket.Conn) {
+func CollectAllMessages(h *middlewares.Hub, conn *websocket.Conn, appConn *websocket.Conn) {
 
 	// Order Matters else channels will block hence no execution
 	symbolmodels := <-h.SymbolModelChannel
@@ -205,6 +205,10 @@ func CollectAllMessages(h *middlewares.Hub, conn *websocket.Conn) {
 		fmt.Println("BALANCE:", helpers.FromMonetary(float64(accountModel.SwingTrader.Balance)))
 		fmt.Println("Sum:", sum)
 		fmt.Println("EQUITY:", equity)
+
+		defer func() {
+			conn.Close()
+		}()
 
 	}()
 

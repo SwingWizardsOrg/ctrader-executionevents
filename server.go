@@ -4,21 +4,19 @@ import (
 	"ctraderapi/messagehandler"
 	"ctraderapi/middlewares"
 	"ctraderapi/persistence"
-	"fmt"
-	"os"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 
-	dsn := os.Getenv("DATABASE_URL")
+	dsn := ("postgres://carlos:vUUYROlx74jmAdnvVunkNqiNdxAvZI32@dpg-cg9il4pmbg54mbfbrte0-a.oregon-postgres.render.com/swings")
 	persistence.Connect(dsn)
 	router := initServer()
 	router.Run(":" + "8080")
 
-	var second string
-	fmt.Scanln(&second)
+	// var second string
+	// fmt.Scanln(&second)
 }
 
 func initServer() *gin.Engine {

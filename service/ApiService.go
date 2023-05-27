@@ -99,10 +99,21 @@ func AuthorizeAccount(conn *websocket.Conn, h *middlewares.Hub) {
 		}
 		if *accounthAuthRes.PayloadType == uint32(messages.ProtoOAPayloadType_PROTO_OA_ACCOUNT_AUTH_RES) {
 			accounthAuth := AccountAuth{}
-			assetlistinitializer := &AssetListInitializer{}
-			// traderinfo := &TraderInfo{}
-			accounthAuth.SetNext(assetlistinitializer)
-			assetlistinitializer.Execute(conn, h)
+
+			swingassests := persistence.GetAllSwingAssets()
+			lightsymbols := persistence.GetAllSwingLightSymmbol()
+
+			if len(swingassests) == 0 && len(lightsymbols) == 0 {
+				assetlistinitializer := &AssetListInitializer{}
+				//
+				accounthAuth.SetNext(assetlistinitializer)
+				assetlistinitializer.Execute(conn, h)
+			} else {
+				traderinfo := &TraderInfo{}
+				accounthAuth.SetNext(traderinfo)
+				traderinfo.Execute(conn, h)
+			}
+
 		}
 
 	}()
