@@ -80,6 +80,7 @@ type OrderModel struct {
 	TradeData messages.ProtoOATradeData
 	Volume    int64
 	Price     float64
+	OpenTime  int64
 }
 
 type Tuple struct {
