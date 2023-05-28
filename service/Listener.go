@@ -99,6 +99,7 @@ func CollectAllMessages(h *middlewares.Hub, conn *websocket.Conn, appConn *webso
 		mareketOrderModel.Ordermodel.TradeSide = *position.TradeData.TradeSide
 		mareketOrderModel.Ordermodel.Price = *position.Price
 		mareketOrderModel.Ordermodel.Volume = *position.TradeData.Volume
+		mareketOrderModel.Ordermodel.OpenTime = *position.TradeData.OpenTimestamp
 		mareketOrderModel.Commision = *position.Commission
 		mareketOrderModel.Swap = *position.Swap
 		mareketOrderModel.MoneyDigits = int32(*position.MoneyDigits)
