@@ -52,6 +52,7 @@ func AuthorizeApp(conn *websocket.Conn, h *middlewares.Hub) {
 		appauthres := <-h.AppAuthResChannnel
 		//Means app is  authorized,we can now authorize the Trading account
 		if *appauthres.PayloadType == 2101 {
+			fmt.Println("Setting  App Account auth...")
 			appAuth := AppAuth{}
 			accountAuth := &AccountAuth{}
 			appAuth.SetNext(accountAuth)
@@ -109,6 +110,7 @@ func AuthorizeAccount(conn *websocket.Conn, h *middlewares.Hub) {
 				accounthAuth.SetNext(assetlistinitializer)
 				assetlistinitializer.Execute(conn, h)
 			} else {
+
 				traderinfo := &TraderInfo{}
 				accounthAuth.SetNext(traderinfo)
 				traderinfo.Execute(conn, h)
@@ -376,7 +378,7 @@ func GetSymbols(conn *websocket.Conn, h *middlewares.Hub) {
 func SendSubscribeSpotsRequest(conn *websocket.Conn) {
 	var payloadtype = uint32(messages.ProtoOAPayloadType_PROTO_OA_SUBSCRIBE_SPOTS_REQ)
 	id := helpers.AccountId
-	ids := []int64{41}
+	ids := []int64{41, 3}
 	nmess := "SUB_REQ"
 
 	symbolsRequest := &messages.ProtoOASubscribeSpotsReq{

@@ -51,31 +51,35 @@ func writePump(c *middlewares.Client) {
 		//c.Appconn.Close()
 	}()
 
-	//for {
-	select {
+	for {
+		select {
 
-	case <-ticker.C:
-		c.Appconn.SetWriteDeadline(time.Now().Add(writeWait))
-		if err := c.Appconn.WriteMessage(websocket.PingMessage, nil); err != nil {
-			return
-		}
-	case accountModel, ok := <-c.Hub.AccountModelChannel:
-		accountModelUsecase := models.AccountModelUseCase{}
-		c.Appconn.SetWriteDeadline(time.Now().Add(writeWait))
-		if !ok {
-			// The hub closed the channel.
-			c.Appconn.WriteMessage(websocket.CloseMessage, []byte{})
-			return
-		}
-		accountModelUsecase.Balance = accountModel.Balance
-		accountModelUsecase.Equity = accountModel.Equity
-		accountModelUsecase.Positions = accountModel.Positions
+		case <-ticker.C:
+			c.Appconn.SetWriteDeadline(time.Now().Add(writeWait))
+			if err := c.Appconn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				return
+			}
+		case accountModel, ok := <-c.Hub.AccountModelChannel:
+			accountModelUsecase := models.AccountModelUseCase{}
+			c.Appconn.SetWriteDeadline(time.Now().Add(writeWait))
+			if !ok {
+				// The hub closed the channel.
+				c.Appconn.WriteMessage(websocket.CloseMessage, []byte{})
+				return
+			}
+			accountModelUsecase.Balance = accountModel.Balance
+			accountModelUsecase.Equity = accountModel.Equity
+			accountModelUsecase.Positions = accountModel.Positions
+			accountModelUsecase.Symbols = accountModel.Symbols
 
-		err := c.Appconn.WriteJSON(accountModelUsecase)
-		if err != nil {
-			log.Fatal(err)
-		}
+			err := c.Appconn.WriteJSON(accountModelUsecase)
+			if err != nil {
+				log.Fatal(err)
+			}
 
+			c.Hub.SubChannel <- accountModel
+
+		}
 	}
 
 }
@@ -103,13 +107,14 @@ func ConnectToOpen(host string, port int, hub *middlewares.Hub, w http.ResponseW
 
 	hub.Register <- client
 	appAuth := &service.AppAuth{}
-	accountAuth := &service.AccountAuth{}
-	appAuth.SetNext(accountAuth)
+	// accountAuth := &service.AccountAuth{}
+	// appAuth.SetNext(accountAuth)
 
 	appAuth.Execute(conn, hub)
 
 	go service.ReadCtraderMessages(conn, *client)
 	go writePump(client)
 	service.CollectAllMessages(hub, conn, Appconn)
+	go service.ListenSpots(hub, client)
 
 }

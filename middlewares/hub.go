@@ -3,6 +3,7 @@ package middlewares
 import (
 	"ctraderapi/messages/github.com/Carlosokumu/messages"
 	"ctraderapi/models"
+	"fmt"
 )
 
 type Hub struct {
@@ -39,6 +40,8 @@ type Hub struct {
 	LightSymbolsChannel            chan []messages.ProtoOALightSymbol
 	AccounConversionSymbolsChannel chan []models.SymbolModel
 	AccountModelChannel            chan models.AccountModel
+	SeparateSpotChannel            chan messages.ProtoMessage
+	SubChannel                     chan models.AccountModel
 }
 
 func NewHub() *Hub {
@@ -46,23 +49,25 @@ func NewHub() *Hub {
 		Register:                       make(chan *Client),
 		Unregister:                     make(chan *Client),
 		clients:                        make(map[*Client]bool),
-		Protos:                         make(chan messages.ProtoMessage),
+		Protos:                         make(chan messages.ProtoMessage, 10000000),
 		resourceid:                     make(chan models.ResourceId),
-		protosback:                     make(chan messages.ProtoMessage),
-		AssetListChannnel:              make(chan messages.ProtoMessage),
-		AccountAuthResChannnel:         make(chan messages.ProtoMessage),
-		AppAuthResChannnel:             make(chan messages.ProtoMessage),
-		TraderResChannnel:              make(chan messages.ProtoMessage),
-		MarketOrderListChannnel:        make(chan messages.ProtoMessage),
-		LightSymbolChannel:             make(chan messages.ProtoMessage),
-		Symbols:                        make(chan messages.ProtoMessage),
-		SymbolModelChannel:             make(chan []models.SymbolModel),
-		AccountOrdersChannel:           make(chan messages.ProtoOAReconcileRes),
-		SpotEventChannel:               make(chan messages.ProtoMessage),
-		ConversionLightSymbols:         make(chan messages.ProtoMessage),
-		LightSymbolsChannel:            make(chan []messages.ProtoOALightSymbol),
-		AccounConversionSymbolsChannel: make(chan []models.SymbolModel),
+		protosback:                     make(chan messages.ProtoMessage, 1000000),
+		AssetListChannnel:              make(chan messages.ProtoMessage, 100000),
+		AccountAuthResChannnel:         make(chan messages.ProtoMessage, 100000),
+		AppAuthResChannnel:             make(chan messages.ProtoMessage, 1000000),
+		TraderResChannnel:              make(chan messages.ProtoMessage, 1000000),
+		MarketOrderListChannnel:        make(chan messages.ProtoMessage, 100000),
+		LightSymbolChannel:             make(chan messages.ProtoMessage, 1000000),
+		Symbols:                        make(chan messages.ProtoMessage, 100000),
+		SymbolModelChannel:             make(chan []models.SymbolModel, 1000000),
+		AccountOrdersChannel:           make(chan messages.ProtoOAReconcileRes, 1000000),
+		SeparateSpotChannel:            make(chan messages.ProtoMessage, 1000000),
+		SpotEventChannel:               make(chan messages.ProtoMessage, 10000000),
+		ConversionLightSymbols:         make(chan messages.ProtoMessage, 100000),
+		LightSymbolsChannel:            make(chan []messages.ProtoOALightSymbol, 100000000),
+		AccounConversionSymbolsChannel: make(chan []models.SymbolModel, 100000),
 		AccountModelChannel:            make(chan models.AccountModel),
+		SubChannel:                     make(chan models.AccountModel),
 	}
 }
 
@@ -114,7 +119,16 @@ func ChannelMessage(protomessage messages.ProtoMessage, h *Hub) {
 		}
 	case uint32(messages.ProtoOAPayloadType_PROTO_OA_SPOT_EVENT):
 		{
-			h.SpotEventChannel <- protomessage
+
+			fmt.Println("Spot...")
+			//h.SpotEventChannel <- protomessage
+			go func() {
+				for {
+					h.SpotEventChannel <- protomessage
+					//fmt.Println("Passed spot", <-h.SpotEventChannel)
+				}
+			}()
+
 		}
 	case uint32(messages.ProtoOAPayloadType_PROTO_OA_SYMBOLS_FOR_CONVERSION_RES):
 		{

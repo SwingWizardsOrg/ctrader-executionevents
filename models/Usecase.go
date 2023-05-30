@@ -8,4 +8,5 @@ type AccountModelUseCase struct {
 	Positions []MarketOrderModel
 	Equity    float64
 	Balance   float64
+	Symbols   []SymbolModel
 }
