@@ -368,10 +368,10 @@ func GetSymbols(conn *websocket.Conn, h *middlewares.Hub) {
 			}
 
 		}
-		symbol := Symbol{}
-		spotsubscriber := &SpotSubscriber{}
-		symbol.SetNext(spotsubscriber)
-		spotsubscriber.Execute(conn, h)
+		// symbol := Symbol{}
+		// spotsubscriber := &SpotSubscriber{}
+		// symbol.SetNext(spotsubscriber)
+		// spotsubscriber.Execute(conn, h)
 	}()
 }
 

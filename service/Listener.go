@@ -6,7 +6,6 @@ import (
 	"math"
 	"time"
 
-	"ctraderapi/helpers"
 	"ctraderapi/mappers"
 	"ctraderapi/messages/github.com/Carlosokumu/messages"
 	"ctraderapi/middlewares"
@@ -120,106 +119,108 @@ func CollectAllMessages(h *middlewares.Hub, conn *websocket.Conn, appConn *webso
 			}
 			accountModel.Positions = positions
 
-			go func() {
-				event := <-h.SpotEventChannel
-				spotEvent := &messages.ProtoOASpotEvent{}
-				unmarsherr := proto.Unmarshal(event.Payload, spotEvent)
-				if unmarsherr != nil {
-					log.Fatal(unmarsherr)
-				}
-				var (
-					bid, ask, TickValue float64
-					symbol              models.SymbolModel
-				)
-				for _, symbomodel := range accountModel.Symbols {
-					if symbomodel.Id == *spotEvent.SymbolId {
-						symbol = symbomodel
-						break
-					}
-				}
-				conversionSymbols := <-h.AccounConversionSymbolsChannel
-				symbol.ConversionSymbols = conversionSymbols
+			h.AccountModelChannel <- accountModel
 
-				if spotEvent.Bid != nil {
-					bid = helpers.GetPriceRelative(symbol.Data, float64(*spotEvent.Bid))
-					fmt.Println("bid:", symbol.Bid)
-				}
+			// go func() {
+			// 	event := <-h.SpotEventChannel
+			// 	spotEvent := &messages.ProtoOASpotEvent{}
+			// 	unmarsherr := proto.Unmarshal(event.Payload, spotEvent)
+			// 	if unmarsherr != nil {
+			// 		log.Fatal(unmarsherr)
+			// 	}
+			// 	var (
+			// 		bid, ask, TickValue float64
+			// 		symbol              models.SymbolModel
+			// 	)
+			// 	for _, symbomodel := range accountModel.Symbols {
+			// 		if symbomodel.Id == *spotEvent.SymbolId {
+			// 			symbol = symbomodel
+			// 			break
+			// 		}
+			// 	}
+			// 	conversionSymbols := <-h.AccounConversionSymbolsChannel
+			// 	symbol.ConversionSymbols = conversionSymbols
 
-				if spotEvent.Ask != nil {
-					ask = helpers.GetPriceRelative(symbol.Data, float64(*spotEvent.Ask))
-					fmt.Println("ask:", ask)
-				}
-				symbol.Bid = bid
+			// 	if spotEvent.Bid != nil {
+			// 		bid = helpers.GetPriceRelative(symbol.Data, float64(*spotEvent.Bid))
+			// 		fmt.Println("bid:", symbol.Bid)
+			// 	}
 
-				if symbol.QuoteAsset.AssetId == accountModel.DepositAsset.AssetId {
-					TickValue = helpers.GetTickValue(symbol.Data, symbol.QuoteAsset, *Trader.Trader.DepositAssetId, nil)
+			// 	if spotEvent.Ask != nil {
+			// 		ask = helpers.GetPriceRelative(symbol.Data, float64(*spotEvent.Ask))
+			// 		fmt.Println("ask:", ask)
+			// 	}
+			// 	symbol.Bid = bid
 
-				} else if (len(symbol.ConversionSymbols)) > 0 {
-					var updatedSymbols []models.SymbolModel
-					var tickValues []models.Tuple
-					for _, iSymbol := range symbol.ConversionSymbols {
-						iSymbol.Bid = bid
-						updatedSymbols = append(updatedSymbols, iSymbol)
+			// 	if symbol.QuoteAsset.AssetId == accountModel.DepositAsset.AssetId {
+			// 		TickValue = helpers.GetTickValue(symbol.Data, symbol.QuoteAsset, *Trader.Trader.DepositAssetId, nil)
 
-					}
-					allNonZero := true
-					for _, iSymbol := range updatedSymbols {
-						if iSymbol.Bid == 0 {
-							allNonZero = false
-							break
-						}
-						if allNonZero {
-							for _, iSymbol := range updatedSymbols {
-								tickValues = append(tickValues, models.Tuple{BaseAsset: iSymbol.BaseAsset, QuoteAsset: iSymbol.QuoteAsset, Bid: iSymbol.Bid})
-							}
-							TickValue = helpers.GetTickValue(symbol.Data, symbol.QuoteAsset, *Trader.Trader.DepositAssetId, tickValues)
+			// 	} else if (len(symbol.ConversionSymbols)) > 0 {
+			// 		var updatedSymbols []models.SymbolModel
+			// 		var tickValues []models.Tuple
+			// 		for _, iSymbol := range symbol.ConversionSymbols {
+			// 			iSymbol.Bid = bid
+			// 			updatedSymbols = append(updatedSymbols, iSymbol)
 
-						}
+			// 		}
+			// 		allNonZero := true
+			// 		for _, iSymbol := range updatedSymbols {
+			// 			if iSymbol.Bid == 0 {
+			// 				allNonZero = false
+			// 				break
+			// 			}
+			// 			if allNonZero {
+			// 				for _, iSymbol := range updatedSymbols {
+			// 					tickValues = append(tickValues, models.Tuple{BaseAsset: iSymbol.BaseAsset, QuoteAsset: iSymbol.QuoteAsset, Bid: iSymbol.Bid})
+			// 				}
+			// 				TickValue = helpers.GetTickValue(symbol.Data, symbol.QuoteAsset, *Trader.Trader.DepositAssetId, tickValues)
 
-					}
+			// 			}
 
-				}
-				var positionsPLStatus []float64
-				sum := 0.0
+			// 		}
 
-				for _, position := range accountModel.Positions {
-					if position.Ordermodel.TradeSide == messages.ProtoOATradeSide_BUY {
+			// 	}
+			// 	var positionsPLStatus []float64
+			// 	sum := 0.0
 
-						if *position.Ordermodel.Symbol.Data.SymbolId == *spotEvent.SymbolId {
-							Symbol := position.Ordermodel.Symbol.Data
-							pipValue := helpers.GetPipValue(*Symbol, TickValue)
-							positionReturn := symbol.Bid - position.Ordermodel.Price
-							pips := helpers.GetPipsFromPrice(Symbol, positionReturn)
-							grossProfit := pips * pipValue * helpers.FromMonetary(float64(position.Ordermodel.Volume))
-							roundedGross := math.Round(grossProfit*100) / 100
-							netProfit := roundedGross + position.DoubleCommissionMonetary + position.SwapMonetary
-							roundedNet := math.Round(netProfit*100) / 100
-							positionsPLStatus = append(positionsPLStatus, roundedNet)
-						}
-					} else {
+			// 	for _, position := range accountModel.Positions {
+			// 		if position.Ordermodel.TradeSide == messages.ProtoOATradeSide_BUY {
 
-					}
-				}
+			// 			if *position.Ordermodel.Symbol.Data.SymbolId == *spotEvent.SymbolId {
+			// 				Symbol := position.Ordermodel.Symbol.Data
+			// 				pipValue := helpers.GetPipValue(*Symbol, TickValue)
+			// 				positionReturn := symbol.Bid - position.Ordermodel.Price
+			// 				pips := helpers.GetPipsFromPrice(Symbol, positionReturn)
+			// 				grossProfit := pips * pipValue * helpers.FromMonetary(float64(position.Ordermodel.Volume))
+			// 				roundedGross := math.Round(grossProfit*100) / 100
+			// 				netProfit := roundedGross + position.DoubleCommissionMonetary + position.SwapMonetary
+			// 				roundedNet := math.Round(netProfit*100) / 100
+			// 				positionsPLStatus = append(positionsPLStatus, roundedNet)
+			// 			}
+			// 		} else {
 
-				// Iterate over the array and add each element to the sum
-				for _, netProfit := range positionsPLStatus {
-					sum += netProfit
-				}
-				accountModel.Balance = helpers.FromMonetary(float64(accountModel.SwingTrader.Balance))
-				equity := accountModel.Balance + sum
-				accountModel.Equity = equity
+			// 		}
+			// 	}
 
-				h.AccountModelChannel <- accountModel
+			// 	// Iterate over the array and add each element to the sum
+			// 	for _, netProfit := range positionsPLStatus {
+			// 		sum += netProfit
+			// 	}
+			// 	accountModel.Balance = helpers.FromMonetary(float64(accountModel.SwingTrader.Balance))
+			// 	equity := accountModel.Balance + sum
+			// 	accountModel.Equity = equity
 
-				fmt.Println("BALANCE:", helpers.FromMonetary(float64(accountModel.SwingTrader.Balance)))
-				fmt.Println("Sum:", sum)
-				fmt.Println("EQUITY:", equity)
+			// 	h.AccountModelChannel <- accountModel
 
-				defer func() {
-					//conn.Close()
-				}()
+			// 	fmt.Println("BALANCE:", helpers.FromMonetary(float64(accountModel.SwingTrader.Balance)))
+			// 	fmt.Println("Sum:", sum)
+			// 	fmt.Println("EQUITY:", equity)
 
-			}()
+			// 	defer func() {
+			// 		//conn.Close()
+			// 	}()
+
+			// }()
 		}
 	}()
 
@@ -227,6 +228,7 @@ func CollectAllMessages(h *middlewares.Hub, conn *websocket.Conn, appConn *webso
 
 func ListenSpots(h *middlewares.Hub, client *middlewares.Client) {
 	go func() {
+
 		for {
 			select {
 			case Event, ok := <-h.SpotEventChannel:
@@ -243,6 +245,14 @@ func ListenSpots(h *middlewares.Hub, client *middlewares.Client) {
 					log.Fatal(unmarsherr)
 				}
 				client.Appconn.WriteJSON(spotEvent)
+
+			case _, ok := <-h.SubChannel:
+				if !ok {
+					// The hub closed the channel.
+					client.Appconn.WriteMessage(websocket.CloseMessage, []byte{})
+					return
+				}
+				SendSubscribeSpotsRequest(client.Conn)
 
 			}
 		}
