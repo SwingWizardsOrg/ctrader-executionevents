@@ -352,6 +352,7 @@ func GetSymbols(conn *websocket.Conn, h *middlewares.Hub) {
 					log.Fatal(err)
 				}
 				accountConversionSymbols := HandleLightSymbols(lightSymbolResponse.Symbol, symbolmodels)
+				_ = append(symbolmodel.ConversionSymbols, accountConversionSymbols...)
 
 				go func() {
 					h.AccounConversionSymbolsChannel <- accountConversionSymbols
@@ -364,6 +365,7 @@ func GetSymbols(conn *websocket.Conn, h *middlewares.Hub) {
 					symbols = append(symbols, symbolmodel)
 					h.AccounConversionSymbolsChannel <- symbols
 				}()
+				_ = append(symbolmodel.ConversionSymbols, symbolmodel)
 
 			}
 

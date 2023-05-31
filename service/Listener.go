@@ -121,6 +121,15 @@ func CollectAllMessages(h *middlewares.Hub, conn *websocket.Conn, appConn *webso
 
 			h.AccountModelChannel <- accountModel
 
+			for _, symbomodel := range accountModel.Symbols {
+				if symbomodel.QuoteAsset.AssetId != accountModel.DepositAsset.AssetId {
+					symbomodel.ConversionSymbols = append(symbomodel.ConversionSymbols)
+				} else {
+
+				}
+
+			}
+
 			// go func() {
 			// 	event := <-h.SpotEventChannel
 			// 	spotEvent := &messages.ProtoOASpotEvent{}

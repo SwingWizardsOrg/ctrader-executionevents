@@ -71,6 +71,7 @@ func writePump(c *middlewares.Client) {
 			accountModelUsecase.Equity = accountModel.Equity
 			accountModelUsecase.Positions = accountModel.Positions
 			accountModelUsecase.Symbols = accountModel.Symbols
+			accountModelUsecase.DepositAsset = accountModel.DepositAsset.AssetId
 
 			err := c.Appconn.WriteJSON(accountModelUsecase)
 			if err != nil {
