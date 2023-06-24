@@ -1,6 +1,7 @@
 package client
 
 import (
+	"ctrader_events/messagebroker"
 	"ctrader_events/network"
 	"fmt"
 	"log"
@@ -22,5 +23,8 @@ func ConnectToCtrader(host string, port int) {
 		log.Fatal(err)
 	}
 	network.AuthorizeApp(conn)
-	go network.ReadCtraderMessages(conn)
+
+	hub := messagebroker.NewHub(conn)
+	go hub.Run()
+	go network.ReadCtraderMessages(conn, *hub)
 }

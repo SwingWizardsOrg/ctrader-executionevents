@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"ctrader_events/messagebroker"
 	"ctrader_events/messages/github.com/Carlosokumu/messages"
 
 	"google.golang.org/protobuf/proto"
@@ -17,7 +18,7 @@ const (
 	pongWait = 60 * time.Second
 )
 
-func ReadCtraderMessages(conn *websocket.Conn) {
+func ReadCtraderMessages(conn *websocket.Conn, messagehandler messagebroker.Hub) {
 	fmt.Println("Reading Messages from Ctrader....🧔🏽‍♂️")
 
 	conn.SetReadDeadline(time.Now().Add(pongWait))
@@ -38,6 +39,11 @@ func ReadCtraderMessages(conn *websocket.Conn) {
 			fmt.Println(unmarsherr)
 		}
 
+		messagehandler.CtraderMessages <- messages.ProtoMessage{
+			PayloadType: msg.PayloadType,
+			Payload:     msg.Payload,
+			ClientMsgId: msg.ClientMsgId,
+		}
 		fmt.Println("Message..")
 		fmt.Println(msg)
 

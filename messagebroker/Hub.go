@@ -1,47 +1,59 @@
-package network
+package messagebroker
 
 import (
 	"ctrader_events/credentials"
 	"ctrader_events/messages/github.com/Carlosokumu/messages"
+	"fmt"
 	"log"
 
-	"google.golang.org/protobuf/proto"
-
 	"github.com/gorilla/websocket"
+
+	"google.golang.org/protobuf/proto"
 )
 
-var (
+const (
 	MessageType = 2
 )
 
-func AuthorizeApp(conn *websocket.Conn) {
-	clientId := credentials.ClientId
-	clientSecret := credentials.ClientSecret
-	authReq := &messages.ProtoOAApplicationAuthReq{
-		ClientId:     &clientId,
-		ClientSecret: &clientSecret,
-	}
-	var payloadtype = uint32(messages.ProtoOAPayloadType_PROTO_OA_APPLICATION_AUTH_REQ)
-	messageId := "APP_AUTH_REQ"
+type Hub struct {
+	CtraderMessages chan messages.ProtoMessage
+	Conn            *websocket.Conn
+}
 
-	authReqBytes, err := proto.Marshal(authReq)
-	if err != nil {
-		log.Fatal(err)
-	}
-	message := &messages.ProtoMessage{
-		PayloadType: &payloadtype,
-		Payload:     authReqBytes,
-		ClientMsgId: &messageId,
-	}
-	protoMessage, _ := proto.Marshal(message)
-
-	// Serialize the message to a byte slice
-	writeerror := conn.WriteMessage(MessageType, protoMessage)
-
-	if writeerror != nil {
-		log.Fatal(writeerror)
+func NewHub(conn *websocket.Conn) *Hub {
+	return &Hub{
+		CtraderMessages: make(chan messages.ProtoMessage),
+		Conn:            conn,
 	}
 }
+
+func (h *Hub) Run() {
+	for {
+		select {
+		case protoMessage := <-h.CtraderMessages:
+			handleMessage(protoMessage, h)
+		}
+	}
+}
+
+func handleMessage(protomessage messages.ProtoMessage, h *Hub) {
+	switch *protomessage.PayloadType {
+	case uint32(messages.ProtoOAPayloadType_PROTO_OA_APPLICATION_AUTH_RES):
+		{
+			fmt.Println("Application has been authorized")
+			AuthorizeAccount(h.Conn)
+		}
+	case uint32(messages.ProtoOAPayloadType_PROTO_OA_ACCOUNT_AUTH_RES):
+		{
+			fmt.Println("Account has been authorized")
+		}
+	case uint32(messages.ProtoOAPayloadType_PROTO_OA_TRADER_RES):
+		{
+
+		}
+	}
+}
+
 func AuthorizeAccount(conn *websocket.Conn) {
 	var payloadtype = uint32(messages.ProtoOAPayloadType_PROTO_OA_ACCOUNT_AUTH_REQ)
 	accountId := credentials.AccountId
