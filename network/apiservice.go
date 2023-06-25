@@ -71,3 +71,20 @@ func AuthorizeAccount(conn *websocket.Conn) {
 	}
 
 }
+
+func SendHeartBeatMessage(conn *websocket.Conn) {
+	var payloadtype = uint32(messages.ProtoOAPayloadType_PROTO_OA_ACCOUNT_AUTH_REQ)
+
+	message := &messages.ProtoMessage{
+		PayloadType: &payloadtype,
+	}
+	protoMessage, err := proto.Marshal(message)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = conn.WriteMessage(MessageType, protoMessage)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+}

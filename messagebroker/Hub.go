@@ -33,13 +33,11 @@ func NewHub(conn *websocket.Conn) *Hub {
 
 func (h *Hub) Run() {
 	ticker := time.NewTicker(pongWait)
-
 	for {
 		select {
 
 		case <-ticker.C:
-			// fmt.Println("Pong Wrote Messages..")
-			// SendHeartBeatMessage(h.Conn)
+			//Send a heartbeat message.
 		case protoMessage := <-h.CtraderMessages:
 			handleMessage(protoMessage, h)
 
@@ -51,12 +49,12 @@ func handleMessage(protomessage messages.ProtoMessage, h *Hub) {
 	switch *protomessage.PayloadType {
 	case uint32(messages.ProtoOAPayloadType_PROTO_OA_APPLICATION_AUTH_RES):
 		{
-			fmt.Println("Application has been authorized")
+			fmt.Println("Application has been authorized 📿")
 			AuthorizeAccount(h.Conn)
 		}
 	case uint32(messages.ProtoOAPayloadType_PROTO_OA_ACCOUNT_AUTH_RES):
 		{
-			fmt.Println("Account has been authorized")
+			fmt.Println("Service is Live 🚀")
 		}
 	case uint32(messages.ProtoOAPayloadType_PROTO_OA_TRADER_RES):
 		{
