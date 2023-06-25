@@ -5,6 +5,7 @@ import (
 	"ctrader_events/messages/github.com/Carlosokumu/messages"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/gorilla/websocket"
 
@@ -13,11 +14,14 @@ import (
 
 const (
 	MessageType = 2
+	// Time allowed to read the next pong message from the peer.
+	pongWait = 35 * time.Second
 )
 
 type Hub struct {
 	CtraderMessages chan messages.ProtoMessage
 	Conn            *websocket.Conn
+	TimerChannel    chan time.Time
 }
 
 func NewHub(conn *websocket.Conn) *Hub {
@@ -28,10 +32,17 @@ func NewHub(conn *websocket.Conn) *Hub {
 }
 
 func (h *Hub) Run() {
+	ticker := time.NewTicker(pongWait)
+
 	for {
 		select {
+
+		case <-ticker.C:
+			// fmt.Println("Pong Wrote Messages..")
+			// SendHeartBeatMessage(h.Conn)
 		case protoMessage := <-h.CtraderMessages:
 			handleMessage(protoMessage, h)
+
 		}
 	}
 }
@@ -51,7 +62,33 @@ func handleMessage(protomessage messages.ProtoMessage, h *Hub) {
 		{
 
 		}
+	case uint32(messages.ProtoPayloadType_HEARTBEAT_EVENT):
+		{
+			select {
+			case <-time.After(10 * time.Second):
+				// Send Back a heartBeat Message to the Server to keep it Alive.
+				SendHeartBeatMessage(h.Conn)
+
+			}
+
+		}
+	case uint32(messages.ProtoPayloadType_ERROR_RES):
+		{
+
+			panic("Unimplemented")
+
+		}
+	case uint32(messages.ProtoOAPayloadType_PROTO_OA_ERROR_RES):
+		{
+
+			panic("Unimplemented")
+
+		}
+	default:
+		{
+		}
 	}
+
 }
 
 func AuthorizeAccount(conn *websocket.Conn) {
@@ -78,6 +115,36 @@ func AuthorizeAccount(conn *websocket.Conn) {
 		log.Fatal(err)
 	}
 	err = conn.WriteMessage(MessageType, protoMessage)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func SendHeartBeatMessage(conn *websocket.Conn) {
+	var payloadtype = uint32(messages.ProtoPayloadType_HEARTBEAT_EVENT)
+
+	payloadType := messages.ProtoPayloadType_HEARTBEAT_EVENT
+
+	heartbeatEvent := &messages.ProtoHeartbeatEvent{
+		PayloadType: &payloadType,
+	}
+
+	heartbeatEventBytes, err := proto.Marshal(heartbeatEvent)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	message := &messages.ProtoMessage{
+		PayloadType: &payloadtype,
+		Payload:     heartbeatEventBytes,
+	}
+
+	protoMessage, err := proto.Marshal(message)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = conn.WriteMessage(2, protoMessage)
 	if err != nil {
 		log.Fatal(err)
 	}
