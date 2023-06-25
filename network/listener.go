@@ -15,13 +15,15 @@ import (
 
 const (
 	// Time allowed to read the next pong message from the peer.
-	pongWait = 60 * time.Second
+	pongWait = 30 * time.Second
 )
 
 func ReadCtraderMessages(conn *websocket.Conn, messagehandler messagebroker.Hub) {
 	fmt.Println("Reading Messages from Ctrader....🧔🏽‍♂️")
+	defer func() {
+		conn.Close()
+	}()
 
-	conn.SetReadDeadline(time.Now().Add(pongWait))
 	conn.SetPongHandler(func(string) error { conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
 		msg := &messages.ProtoMessage{}
