@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+const (
+	BUY  = 1
+	SELL = 2
+)
+
 func GenerateCode() int {
 	// Seed the random number generator
 	rand.Seed(time.Now().UnixNano())
@@ -19,9 +24,9 @@ func GenerateCode() int {
 
 func DetermineTradeSide(tradeSide *messages.ProtoOATradeSide) int32 {
 	if *tradeSide == messages.ProtoOATradeSide_BUY {
-		return 1
+		return BUY
 	} else {
-		return 2
+		return SELL
 	}
 }
 
