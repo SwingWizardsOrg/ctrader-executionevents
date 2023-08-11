@@ -46,7 +46,6 @@ func ReadCtraderMessages(conn *websocket.Conn, messagehandler messagebroker.Hub)
 			Payload:     msg.Payload,
 			ClientMsgId: msg.ClientMsgId,
 		}
-		fmt.Println("Message..")
 		fmt.Println(msg)
 
 	}
