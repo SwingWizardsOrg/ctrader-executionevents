@@ -35,23 +35,7 @@ func main() {
 
 	json.Unmarshal(byteValue, &symbols)
 
-	// for _, symbol := range symbols.Symbols {
-	// 	// symbolEntity := database.SymbolEntity{
-	// 	// 	SymbolId:       symbol.SymbolId,
-	// 	// 	SymbolName:     symbol.SymbolName,
-	// 	// 	Lot_ZeroOne:    &symbol.Lot_ZeroOne,
-	// 	// 	Lot_ZeroFive:   &symbol.Lot_ZeroFive,
-	// 	// 	Lot_ZeroTen:    &symbol.Lot_ZeroTen,
-	// 	// 	Lot_ZeroTwenty: &symbol.Lot_ZeroTwenty,
-	// 	// 	Lot_ZeroThirty: &symbol.Lot_ZeroThirty,
-	// 	// }
-	// 	// if err := database.Instance.Create(&symbolEntity).Error; err != nil {
-	// 	// 	log.Fatal(err)
-	// 	// }
-	// }
-
 	client.ConnectToCtrader("demo.ctraderapi.com", 5035)
-	// taking input and storing in variable using the buffer string
 	fmt.Scanf("%s ", &amount)
 
 }
