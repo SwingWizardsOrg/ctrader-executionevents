@@ -19,7 +19,7 @@ const (
 )
 
 func ReadCtraderMessages(conn *websocket.Conn, messagehandler messagebroker.Hub) {
-	fmt.Println("Reading Messages from Ctrader....🧔🏽‍♂️")
+	fmt.Println("Reading Messages from Ctrader 👁️‍🗨️")
 	defer func() {
 		conn.Close()
 	}()
