@@ -1,14 +1,16 @@
 package service
 
 import (
-	"ctraderapi/helpers"
-	"ctraderapi/mappers"
-	"ctraderapi/messages/github.com/Carlosokumu/messages"
-	"ctraderapi/middlewares"
-	"ctraderapi/models"
-	"ctraderapi/persistence"
+	"ctrader_events/middlewares"
+	"ctrader_events/models"
+
+	"ctrader_events/persistence"
 	"fmt"
 	"log"
+
+	"ctrader_events/helpers"
+	"ctrader_events/mappers"
+	"ctrader_events/messages/github.com/swingwizards/messages"
 
 	"google.golang.org/protobuf/proto"
 

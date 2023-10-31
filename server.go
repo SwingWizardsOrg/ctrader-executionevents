@@ -1,25 +1,14 @@
 package main
 
 import (
-<<<<<<< HEAD
-	"ctraderapi/messagehandler"
-	"ctraderapi/middlewares"
+	"ctrader_events/messagehandler"
+	"ctrader_events/middlewares"
 
 	"github.com/gin-gonic/gin"
-=======
-	"ctrader_events/client"
-	"ctrader_events/database"
-	"ctrader_events/models"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"os"
->>>>>>> 96c65c03dc14288996da5e4a6b2ee606824552ee
 )
 
 func main() {
 
-	
 	router := initServer()
 	router.Run(":" + "8070")
 

@@ -1,7 +1,7 @@
 package messagehandler
 
 import (
-	"ctraderapi/messages/github.com/Carlosokumu/messages"
+	"ctrader_events/messages/github.com/swingwizards/messages"
 
 	"google.golang.org/protobuf/proto"
 )

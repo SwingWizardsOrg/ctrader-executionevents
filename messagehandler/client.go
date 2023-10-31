@@ -1,16 +1,16 @@
 package messagehandler
 
 import (
+	"ctrader_events/messages/github.com/swingwizards/messages"
+	"ctrader_events/models"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
-	"ctraderapi/messages/github.com/Carlosokumu/messages"
+	"ctrader_events/middlewares"
 
-	"ctraderapi/middlewares"
-	"ctraderapi/models"
-	"ctraderapi/service"
+	"ctrader_events/service"
 
 	"github.com/gorilla/websocket"
 )

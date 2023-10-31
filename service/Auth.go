@@ -3,7 +3,7 @@ package service
 import (
 	"fmt"
 
-	"ctraderapi/middlewares"
+	"ctrader_events/middlewares"
 
 	"github.com/gorilla/websocket"
 )

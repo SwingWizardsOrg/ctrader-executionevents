@@ -1,7 +1,7 @@
 package helpers
 
 import (
-	"ctrader_events/messages/github.com/Carlosokumu/messages"
+	"ctrader_events/messages/github.com/swingwizards/messages"
 	"math/rand"
 	"time"
 )

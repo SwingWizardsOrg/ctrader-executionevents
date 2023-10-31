@@ -6,10 +6,12 @@ import (
 	"math"
 	"time"
 
-	"ctraderapi/mappers"
-	"ctraderapi/messages/github.com/Carlosokumu/messages"
-	"ctraderapi/middlewares"
-	"ctraderapi/models"
+	"ctrader_events/mappers"
+
+	"ctrader_events/middlewares"
+	"ctrader_events/models"
+
+	"ctrader_events/messages/github.com/swingwizards/messages"
 
 	"google.golang.org/protobuf/proto"
 

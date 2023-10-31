@@ -4,8 +4,9 @@ import (
 	"ctrader_events/credentials"
 	"ctrader_events/database"
 	"ctrader_events/helpers"
-	"ctrader_events/messages/github.com/Carlosokumu/messages"
+	"ctrader_events/messages/github.com/swingwizards/messages"
 	"fmt"
+
 	"log"
 	"strconv"
 	"time"

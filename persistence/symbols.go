@@ -6,7 +6,7 @@ import (
 	"log"
 	"strconv"
 
-	"ctraderapi/messages/github.com/Carlosokumu/messages"
+	"ctrader_events/messages/github.com/swingwizards/messages"
 
 	"gorm.io/gorm"
 

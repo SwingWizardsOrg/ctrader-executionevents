@@ -1,8 +1,9 @@
 package middlewares
 
 import (
-	"ctraderapi/messages/github.com/Carlosokumu/messages"
-	"ctraderapi/models"
+	"ctrader_events/messages/github.com/swingwizards/messages"
+	"ctrader_events/models"
+
 	"fmt"
 )
 

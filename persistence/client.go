@@ -1,7 +1,7 @@
 package persistence
 
 import (
-	"ctraderapi/mappers"
+	"ctrader_events/mappers"
 	"log"
 )
 

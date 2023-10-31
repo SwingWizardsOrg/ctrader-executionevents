@@ -2,7 +2,8 @@ package network
 
 import (
 	"ctrader_events/credentials"
-	"ctrader_events/messages/github.com/Carlosokumu/messages"
+	"ctrader_events/messages/github.com/swingwizards/messages"
+
 	"log"
 
 	"google.golang.org/protobuf/proto"

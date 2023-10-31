@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"ctraderapi/messages/github.com/Carlosokumu/messages"
+	"ctrader_events/messages/github.com/swingwizards/messages"
 
 	"github.com/gorilla/websocket"
 )

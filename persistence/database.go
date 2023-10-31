@@ -1,9 +1,8 @@
 package persistence
 
 import (
+	"ctrader_events/mappers"
 	"log"
-
-	"ctraderapi/mappers"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

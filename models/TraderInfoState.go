@@ -1,8 +1,8 @@
 package models
 
 import (
-	"ctraderapi/mappers"
-	"ctraderapi/messages/github.com/Carlosokumu/messages"
+	"ctrader_events/mappers"
+	"ctrader_events/messages/github.com/swingwizards/messages"
 	"fmt"
 )
 

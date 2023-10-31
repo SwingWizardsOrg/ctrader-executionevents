@@ -1,9 +1,9 @@
 package helpers
 
 import (
-	"ctraderapi/mappers"
-	"ctraderapi/messages/github.com/Carlosokumu/messages"
-	"ctraderapi/models"
+	"ctrader_events/mappers"
+	"ctrader_events/messages/github.com/swingwizards/messages"
+	"ctrader_events/models"
 	"math"
 )
 
