@@ -44,3 +44,12 @@ enum ProtoErrorCode {
     CONCURRENT_MODIFICATION = 10; // Order is blocked (e.g. under execution) and change cannot be applied.
     BLOCKED_PAYLOAD_TYPE = 11; // Message is blocked by server.
 }
+<<<<<<< HEAD
+=======
+
+
+/** Event that is sent from Open API proxy and can be used as criteria that connection is healthy when no other messages are sent by cTrader platform. Open API client can send this message when he needs to keep the connection open for a period without other messages longer than 30 seconds */
+message ProtoHeartbeatEvent {
+    optional ProtoPayloadType payloadType = 1 [default = HEARTBEAT_EVENT];
+}
+>>>>>>> 96c65c03dc14288996da5e4a6b2ee606824552ee
