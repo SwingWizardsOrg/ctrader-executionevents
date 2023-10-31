@@ -40,6 +40,8 @@ func AuthorizeApp(conn *websocket.Conn, h *middlewares.Hub) {
 	}
 	protoMessage, _ := proto.Marshal(message)
 
+	fmt.Println("BYTEMESSAGE:", protoMessage)
+
 	// Serialize the message to a byte slice
 	writeerror := conn.WriteMessage(MessageType, protoMessage)
 
@@ -99,22 +101,22 @@ func AuthorizeAccount(conn *websocket.Conn, h *middlewares.Hub) {
 			log.Fatal(err)
 		}
 		if *accounthAuthRes.PayloadType == uint32(messages.ProtoOAPayloadType_PROTO_OA_ACCOUNT_AUTH_RES) {
-			accounthAuth := AccountAuth{}
+			// accounthAuth := AccountAuth{}
 
-			swingassests := persistence.GetAllSwingAssets()
-			lightsymbols := persistence.GetAllSwingLightSymmbol()
+			// swingassests := persistence.GetAllSwingAssets()
+			// lightsymbols := persistence.GetAllSwingLightSymmbol()
 
-			if len(swingassests) == 0 && len(lightsymbols) == 0 {
-				assetlistinitializer := &AssetListInitializer{}
-				//
-				accounthAuth.SetNext(assetlistinitializer)
-				assetlistinitializer.Execute(conn, h)
-			} else {
+			// if len(swingassests) == 0 && len(lightsymbols) == 0 {
+			// 	assetlistinitializer := &AssetListInitializer{}
+			// 	//
+			// 	accounthAuth.SetNext(assetlistinitializer)
+			// 	assetlistinitializer.Execute(conn, h)
+			// } else {
 
-				traderinfo := &TraderInfo{}
-				accounthAuth.SetNext(traderinfo)
-				traderinfo.Execute(conn, h)
-			}
+			// 	traderinfo := &TraderInfo{}
+			// 	accounthAuth.SetNext(traderinfo)
+			// 	traderinfo.Execute(conn, h)
+			// }
 
 		}
 
@@ -332,27 +334,33 @@ func GetSymbols(conn *websocket.Conn, h *middlewares.Hub) {
 
 	go func() {
 		symbols := <-h.Symbols
+		var MySlice []models.SymbolModel
 
 		symbolRes := messages.ProtoOASymbolByIdRes{}
 		proto.Unmarshal(symbols.Payload, &symbolRes)
 
 		symbolmodels := ProcessLightSymbols(lightsymbols, symbolRes.Symbol, swingassets)
 
-		h.SymbolModelChannel <- symbolmodels
-		for _, symbolmodel := range symbolmodels {
+		for index, symbolmodel := range symbolmodels {
 
 			//Not Equal to account Deposit Asset
 			if symbolmodel.QuoteAsset.AssetId != 11 {
-				fmt.Println("Not equal so re-tech...")
+
 				GetConversionSymbols(symbolmodel.QuoteAsset.AssetId, 11, conn)
 				lightsymbol := <-h.ConversionLightSymbols
+
 				lightSymbolResponse := messages.ProtoOASymbolsForConversionRes{}
 				err := proto.Unmarshal(lightsymbol.Payload, &lightSymbolResponse)
 				if err != nil {
 					log.Fatal(err)
 				}
+				fmt.Println("CONVER:", lightSymbolResponse.Symbol)
 				accountConversionSymbols := HandleLightSymbols(lightSymbolResponse.Symbol, symbolmodels)
-				_ = append(symbolmodel.ConversionSymbols, accountConversionSymbols...)
+
+				symbolmodel.ConversionSymbols = append(symbolmodels[index].ConversionSymbols, accountConversionSymbols...)
+				MySlice = append(MySlice, accountConversionSymbols...)
+
+				fmt.Println("APPENDUP:", len(symbolmodel.ConversionSymbols))
 
 				go func() {
 					h.AccounConversionSymbolsChannel <- accountConversionSymbols
@@ -365,11 +373,17 @@ func GetSymbols(conn *websocket.Conn, h *middlewares.Hub) {
 					symbols = append(symbols, symbolmodel)
 					h.AccounConversionSymbolsChannel <- symbols
 				}()
-				_ = append(symbolmodel.ConversionSymbols, symbolmodel)
+
+				symbolmodel.ConversionSymbols = append(symbolmodels[index].ConversionSymbols, symbolmodel)
+				MySlice = append(MySlice, symbolmodel)
+				fmt.Println("APPENDEDDOWN:", len(symbolmodel.ConversionSymbols))
 
 			}
 
 		}
+		fmt.Println("SIZECON:", len(symbolmodels[0].ConversionSymbols))
+		fmt.Println("MYSLICE:", len(MySlice))
+		h.SymbolModelChannel <- symbolmodels
 		// symbol := Symbol{}
 		// spotsubscriber := &SpotSubscriber{}
 		// symbol.SetNext(spotsubscriber)

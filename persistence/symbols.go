@@ -8,6 +8,8 @@ import (
 
 	"ctraderapi/messages/github.com/Carlosokumu/messages"
 
+	"gorm.io/gorm"
+
 	badger "github.com/dgraph-io/badger/v3"
 )
 
@@ -125,4 +127,11 @@ func ReadLightSymbolData(SymbolId int64) (*messages.ProtoOALightSymbol, error) {
 
 type SymbolData struct {
 	Name string `json:"name"`
+}
+
+type SymbolModel struct {
+	gorm.Model
+	ConversionSymbols []SymbolModel `gorm:"foreignkey:ParentID"`
+	ID                int64
+	ParentID          int64
 }

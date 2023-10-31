@@ -52,7 +52,7 @@ func ReadCtraderMessages(conn *websocket.Conn, handler middlewares.Client) {
 			ClientMsgId: msg.ClientMsgId,
 		}
 		fmt.Println("Message..")
-		//fmt.Println(msg)
+		fmt.Println(msg)
 
 	}
 }
