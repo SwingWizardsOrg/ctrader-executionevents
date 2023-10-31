@@ -28,6 +28,7 @@ func Migrate() {
 		&mappers.SwingLightSymbol{},
 		&mappers.SwingSymbol{},
 		&mappers.SwingAsset{},
+		&SymbolModel{},
 	)
 
 	if err != nil {
