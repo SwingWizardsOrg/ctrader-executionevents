@@ -108,8 +108,6 @@ func ConnectToOpen(host string, port int, hub *middlewares.Hub, w http.ResponseW
 
 	hub.Register <- client
 	appAuth := &service.AppAuth{}
-	// accountAuth := &service.AccountAuth{}
-	// appAuth.SetNext(accountAuth)
 
 	appAuth.Execute(conn, hub)
 
