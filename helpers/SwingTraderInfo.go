@@ -1,8 +1,8 @@
 package helpers
 
 var (
-	ClientId     = "5965_tNd0vjkbx7CTGpnNcsLObyxG6jX9tWe6fLZSzT7n5gbyY39k15"
-	ClientSecret = "rKYNjABJUvOPrO8LCKBW4CAQfXYKuTnawJCEsTihvpBPuhYNFf"
-	AccountId    = int64(26507439)
-	AccessToken  = "6F6tCwqVM4Bu-2UctiRc-MI1tIxEYE4GSViS2DK7ryI"
+	ClientId     = "6670_30qsRoHk2iOUrGjNblLakl7Hvu0lkHjP5xgt6Hs1DOCm0cTlwk"
+	ClientSecret = "m894l2O6iXW2M0dLmXFQwDAiYNemON1rjoU9Zbu1ha6mZivEIc"
+	AccountId    = int64(33414609)
+	AccessToken  = "HwNQIlvIaSO828F-tR5FvBmy0YaOtLlNZFkpiidilUE"
 )
