@@ -16,9 +16,6 @@ type Client struct {
 	//will hold ctrader protomessages
 	Protomessages chan messages.ProtoMessage
 
-	// //app's websocket connection
+	//app's websocket connection
 	Appconn *websocket.Conn
-
-	// //will hold json messages
-	// resources chan models.ResourceId
 }
